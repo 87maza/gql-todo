@@ -4,7 +4,8 @@ import {
   GraphQLInt,
   GraphQLBoolean,
   GraphQLSchema,
-  GraphQLList
+  GraphQLList,
+  GraphQLNonNull
 } from "graphql";
 import { Todo } from "../models";
 
@@ -21,7 +22,7 @@ const TodoGQLModel = new GraphQLObjectType({
   })
 });
 const RootQuery = new GraphQLObjectType({
-  name: "TodosQuery",
+  name: "todosQueries",
   fields: {
     todos: {
       type: new GraphQLList(TodoGQLModel),
@@ -43,7 +44,34 @@ const RootQuery = new GraphQLObjectType({
     }
   }
 });
+const RootMutation = new GraphQLObjectType({
+  name: "todosMutations",
+  fields: {
+    create: {
+      type: TodoGQLModel,
+      args: {
+        title: { type: new GraphQLNonNull(GraphQLString) },
+        body: { type: new GraphQLNonNull(GraphQLString) },
+        complete: { type: new GraphQLNonNull(GraphQLBoolean) }
+      },
+      resolve: (_, { title, body, complete }) => {
+        let todo = new Todo({ title, body, complete });
+        return todo.save();
+      }
+    },
+    deleteTodoById: {
+      type: TodoGQLModel,
+      args: {
+        id: { type: GraphQLString }
+      },
+      resolve: (_, { id }) => {
+        return Todo.findOneAndRemove(id);
+      }
+    }
+  }
+});
 
 export default new GraphQLSchema({
-  query: RootQuery
+  query: RootQuery,
+  mutation: RootMutation
 });
