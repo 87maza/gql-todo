@@ -18,7 +18,7 @@ const TodoGQLModel = new GraphQLObjectType({
     body: { type: GraphQLString },
     complete: { type: GraphQLBoolean },
     created_at: { type: GraphQLString },
-    updated_at: { type: GraphQLInt } // comes in as an epoch string look into /graphql-iso-date
+    updated_at: { type: GraphQLString } // comes in as an epoch string look into /graphql-iso-date
   })
 });
 const RootQuery = new GraphQLObjectType({
@@ -66,6 +66,25 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve: (_, { id }) => {
         return Todo.findOneAndRemove(id);
+      }
+    },
+    updateTodoById: {
+      type: TodoGQLModel,
+      args: {
+        id: { type: GraphQLString },
+        title: { type: GraphQLString },
+        body: { type: GraphQLString },
+        complete: { type: GraphQLBoolean }
+      },
+      resolve: (_, { id, title, body, complete }) => {
+        return Todo.findByIdAndUpdate(
+          id,
+          { title, body, complete, updated_at: Date.now() },
+          (err, res) => {
+            if (err) console.log("err", err);
+            else console.log(res);
+          }
+        );
       }
     }
   }
